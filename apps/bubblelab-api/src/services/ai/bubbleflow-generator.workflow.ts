@@ -36,6 +36,7 @@ import {
 } from '@bubblelab/bubble-runtime';
 import { EditBubbleFlowTool } from '@bubblelab/bubble-core';
 import { BubbleFactory } from '@bubblelab/bubble-core';
+import { env } from '../../config/env.js';
 
 /**
  * Parameters schema for the simple BubbleFlow generator
@@ -60,7 +61,7 @@ type BubbleFlowGeneratorParamsParsed = BubbleFlowGeneratorParams & {
   streamingCallback?: StreamingCallback;
 };
 
-const MAX_ITERATIONS = 50;
+const MAX_ITERATIONS = 100;
 
 const TOOL_NAMES = {
   VALIDATION: 'bubbleflow-validation-tool',
@@ -147,13 +148,19 @@ export class BubbleFlowGeneratorWorkflow extends WorkflowBubble<
     const summarizeAgent = new AIAgentBubble(
       {
         name: 'Flow Summary Agent',
-        model: {
-          model: 'google/gemini-2.5-flash',
-          jsonMode: true,
-          backupModel: {
-            model: 'anthropic/claude-haiku-4-5',
-          },
-        },
+        model:
+          env.LLM_PROVIDER === 'generic-openai'
+            ? {
+                model: 'openai/glm-4.6' as const,
+                jsonMode: true,
+              }
+            : {
+                model: 'google/gemini-2.5-flash',
+                jsonMode: true,
+                backupModel: {
+                  model: 'anthropic/claude-haiku-4-5',
+                },
+              },
         message:
           `You are summarizeAgent for Bubble Lab. Analyze the provided validated BubbleFlow TypeScript and generate a user-friendly summary.
 
@@ -285,7 +292,14 @@ Return strict JSON with keys "summary" and "inputsSchema". No markdown wrapper. 
     boilerplate: string,
     bubbleDescriptions: string
   ): string {
+    const modelInstruction =
+      env.LLM_PROVIDER === 'generic-openai'
+        ? `CRITICAL MODEL REQUIREMENT: When configuring ANY AI Agent bubbles in the generated code, you MUST use 'openai/glm-4.6' as the model. Do NOT use Google, Anthropic, or OpenRouter models. NEVER use 'openrouter/' prefix. The ONLY valid model is 'openai/glm-4.6'.`
+        : '';
+
     return `${SYSTEM_PROMPT_BASE}
+
+${modelInstruction}
 
 Here's the boilerplate template you should use as a starting point:
 \`\`\`typescript
@@ -489,14 +503,20 @@ ${AI_AGENT_BEHAVIOR_INSTRUCTIONS}`;
             bubbleDescriptions
           ),
 
-          model: {
-            model: 'google/gemini-3-pro-preview',
-            temperature: 0.3,
-            backupModel: {
-              model: 'anthropic/claude-sonnet-4-5',
-              temperature: 0.3,
-            },
-          },
+          model:
+            env.LLM_PROVIDER === 'generic-openai'
+              ? {
+                  model: 'openai/glm-4.6' as const,
+                  temperature: 0.3,
+                }
+              : {
+                  model: 'google/gemini-3-pro-preview',
+                  temperature: 0.3,
+                  backupModel: {
+                    model: 'anthropic/claude-sonnet-4-5',
+                    temperature: 0.3,
+                  },
+                },
           tools: [
             {
               name: TOOL_NAMES.BUBBLE_DETAILS,

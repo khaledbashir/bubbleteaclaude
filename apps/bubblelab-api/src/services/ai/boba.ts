@@ -38,26 +38,45 @@ export async function runBoba(
 ): Promise<GenerationResult> {
   const { prompt, credentials } = request;
 
-  if (!env.OPENROUTER_API_KEY) {
-    return {
-      summary: '',
-      inputsSchema: '',
-      toolCalls: [],
-      generatedCode: '',
-      isValid: false,
-      success: false,
-      error: `OpenRouter API key is required to run (for apply model), please make sure the environment variable ${CREDENTIAL_ENV_MAP[CredentialType.OPENROUTER_CRED]} is set, please obtain one https://openrouter.ai/settings/keys.`,
-    };
-  } else if (!env.GOOGLE_API_KEY) {
-    return {
-      summary: '',
-      inputsSchema: '',
-      toolCalls: [],
-      generatedCode: '',
-      isValid: false,
-      success: false,
-      error: `Google API key is required to run (for main generation model), please make sure the environment variable ${CREDENTIAL_ENV_MAP[CredentialType.GOOGLE_GEMINI_CRED]} is set, please obtain one https://console.cloud.google.com/apis/credentials.`,
-    };
+  const isGenericOpenAI = env.LLM_PROVIDER === 'generic-openai';
+  const hasGenericKey = !!env.GENERIC_OPEN_AI_API_KEY;
+  const hasOpenRouterKey = !!env.OPENROUTER_API_KEY;
+  const hasGoogleKey = !!env.GOOGLE_API_KEY;
+
+  if (isGenericOpenAI) {
+    if (!hasGenericKey) {
+      return {
+        summary: '',
+        inputsSchema: '',
+        toolCalls: [],
+        generatedCode: '',
+        isValid: false,
+        success: false,
+        error: `Generic OpenAI API key is required when LLM_PROVIDER is set to 'generic-openai'. Please set GENERIC_OPEN_AI_API_KEY in your .env file.`,
+      };
+    }
+  } else {
+    if (!hasOpenRouterKey) {
+      return {
+        summary: '',
+        inputsSchema: '',
+        toolCalls: [],
+        generatedCode: '',
+        isValid: false,
+        success: false,
+        error: `OpenRouter API key is required to run (for apply model), please make sure the environment variable ${CREDENTIAL_ENV_MAP[CredentialType.OPENROUTER_CRED]} is set, please obtain one https://openrouter.ai/settings/keys.`,
+      };
+    } else if (!hasGoogleKey) {
+      return {
+        summary: '',
+        inputsSchema: '',
+        toolCalls: [],
+        generatedCode: '',
+        isValid: false,
+        success: false,
+        error: `Google API key is required to run (for main generation model), please make sure the environment variable ${CREDENTIAL_ENV_MAP[CredentialType.GOOGLE_GEMINI_CRED]} is set, please obtain one https://console.cloud.google.com/apis/credentials.`,
+      };
+    }
   }
 
   // Create logger for token tracking
@@ -69,9 +88,13 @@ export async function runBoba(
   const mergedCredentials: Partial<Record<CredentialType, string>> = {
     [CredentialType.GOOGLE_GEMINI_CRED]: process.env.GOOGLE_API_KEY || '',
     [CredentialType.OPENROUTER_CRED]: process.env.OPENROUTER_API_KEY || '',
-
     ...credentials,
   };
+
+  // If using generic OpenAI, force inject the credential
+  if (isGenericOpenAI && hasGenericKey) {
+    mergedCredentials[CredentialType.OPENAI_CRED] = env.GENERIC_OPEN_AI_API_KEY;
+  }
   const bubbleFactory = await getBubbleFactory();
 
   // Create BubbleFlowGeneratorWorkflow instance

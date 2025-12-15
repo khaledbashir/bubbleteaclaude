@@ -87,6 +87,13 @@ export const env = {
   POSTHOG_API_KEY: process.env.POSTHOG_API_KEY,
   POSTHOG_HOST: process.env.POSTHOG_HOST || 'https://us.i.posthog.com',
   POSTHOG_ENABLED: process.env.POSTHOG_ENABLED === 'true',
+  // Generic OpenAI Provider
+  LLM_PROVIDER: process.env.LLM_PROVIDER,
+  GENERIC_OPEN_AI_BASE_PATH: process.env.GENERIC_OPEN_AI_BASE_PATH,
+  GENERIC_OPEN_AI_MODEL_PREF: process.env.GENERIC_OPEN_AI_MODEL_PREF,
+  GENERIC_OPEN_AI_MODEL_TOKEN_LIMIT:
+    process.env.GENERIC_OPEN_AI_MODEL_TOKEN_LIMIT,
+  GENERIC_OPEN_AI_API_KEY: process.env.GENERIC_OPEN_AI_API_KEY,
   isDev:
     process.env.BUBBLE_ENV?.toLowerCase() === 'dev' ||
     process.env.BUBBLE_ENV?.toLowerCase() === 'test',

@@ -259,13 +259,26 @@ export async function runPearl(
   apiStreamingCallback?: StreamingCallback,
   maxRetries?: number
 ): Promise<PearlResponse> {
-  if (!env.OPENROUTER_API_KEY) {
+  const isGenericOpenAI = env.LLM_PROVIDER === 'generic-openai';
+  const hasGenericKey = !!env.GENERIC_OPEN_AI_API_KEY;
+  const hasOpenRouterKey = !!env.OPENROUTER_API_KEY;
+
+  if (isGenericOpenAI) {
+    if (!hasGenericKey) {
+      return {
+        type: 'reject',
+        message: `Generic OpenAI API key is required when LLM_PROVIDER is set to 'generic-openai'. Please set GENERIC_OPEN_AI_API_KEY in your .env file.`,
+        success: false,
+      };
+    }
+  } else if (!hasOpenRouterKey) {
     return {
       type: 'reject',
       message: `OpenRouter API key is required to run Pearl, please make sure the environment variable ${CREDENTIAL_ENV_MAP[CredentialType.OPENROUTER_CRED]} is set, please obtain one https://openrouter.ai/settings/keys to run Pearl.`,
       success: false,
     };
   }
+
   const MAX_RETRIES = maxRetries || 3;
   let lastError: string | undefined;
 

@@ -538,7 +538,30 @@ export class AIAgentBubble extends ServiceBubble<
     const retries = maxRetries ?? 3;
 
     switch (provider) {
-      case 'openai':
+      case 'openai': {
+        // Check if using generic OpenAI provider with custom base URL
+        const genericBaseUrl = process.env.GENERIC_OPEN_AI_BASE_PATH;
+        const isGenericOpenAI =
+          process.env.LLM_PROVIDER === 'generic-openai' && genericBaseUrl;
+
+        if (isGenericOpenAI) {
+          console.log(
+            '[AIAgent] Using generic OpenAI provider with base URL:',
+            genericBaseUrl
+          );
+          return new ChatOpenAI({
+            model: modelName,
+            temperature,
+            maxTokens,
+            apiKey,
+            streaming: enableStreaming,
+            maxRetries: retries,
+            configuration: {
+              baseURL: genericBaseUrl,
+            },
+          });
+        }
+
         return new ChatOpenAI({
           model: modelName,
           temperature,
@@ -547,6 +570,7 @@ export class AIAgentBubble extends ServiceBubble<
           streaming: enableStreaming,
           maxRetries: retries,
         });
+      }
       case 'google':
         return new SafeGeminiChat({
           model: modelName,

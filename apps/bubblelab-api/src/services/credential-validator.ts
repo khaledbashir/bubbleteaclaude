@@ -148,7 +148,7 @@ export class CredentialValidator {
       case CredentialType.OPENAI_CRED:
         baseParams.message = 'Hello, how are you?';
         baseParams.model = {
-          model: 'openai/gpt-5',
+          model: 'openai/gpt-5-mini',
         };
         break;
       case CredentialType.ANTHROPIC_CRED:
@@ -172,7 +172,7 @@ export class CredentialValidator {
       case CredentialType.OPENROUTER_CRED:
         baseParams.message = 'Hello, how are you?';
         baseParams.model = {
-          model: 'openrouter/openai/gpt-oss-120b',
+          model: 'openrouter/anthropic/claude-sonnet-4.5',
         };
         break;
       case CredentialType.ELEVENLABS_API_KEY:

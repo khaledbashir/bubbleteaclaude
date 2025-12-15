@@ -122,7 +122,14 @@ export const OnboardingQuestionnaire: React.FC<
       );
 
       if (!response.ok) {
-        const data = await response.json();
+        let data;
+        try {
+          data = await response.json();
+        } catch (jsonError) {
+          throw new Error(
+            `Failed to submit questionnaire: ${response.statusText}`
+          );
+        }
         throw new Error(data.error || 'Failed to submit questionnaire');
       }
 

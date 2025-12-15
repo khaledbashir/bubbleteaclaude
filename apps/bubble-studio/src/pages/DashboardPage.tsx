@@ -340,14 +340,15 @@ export class UntitledFlow extends BubbleFlow<'webhook/http'> {
     ) {
       setHasCheckedOnboarding(true);
 
-      // Check if onboarding is already completed via Clerk metadata OR localStorage
+      // Skip onboarding questionnaire in dev mode
       // localStorage serves as a fallback since Clerk's cached user object may be stale
       const publicMetadata = (
         user as { publicMetadata?: { onboardingCompleted?: boolean } }
       ).publicMetadata;
       const hasCompletedOnboarding =
         publicMetadata?.onboardingCompleted === true ||
-        localStorage.getItem('onboardingCompleted') === 'true';
+        localStorage.getItem('onboardingCompleted') === 'true' ||
+        true; // Force skip in dev mode
 
       if (!hasCompletedOnboarding) {
         // Show onboarding questionnaire for new users

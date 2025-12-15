@@ -6,6 +6,7 @@ export const AvailableModels = z.enum([
   'openai/gpt-5',
   'openai/gpt-5-mini',
   'openai/gpt-5.1',
+  'openai/glm-4.6', // Z.ai GLM model via generic OpenAI provider
   // Google Gemini models
   'google/gemini-2.5-pro',
   'google/gemini-2.5-flash',
